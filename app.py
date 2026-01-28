@@ -21,23 +21,21 @@ Cette application permet d'analyser les caractéristiques des fleurs d'Iris.
 **Auteur : Daniel**
 """)
 
-# --- THEME & COULEURS (choix demandé : couleurs vives, pas de fond blanc) ---
-# Deux couleurs dominantes choisies pour l'application :
-# - PRIMARY (rose vif)
-# - SECONDARY (indigo profond)
-# Une couleur d'accent pour équilibrer les graphiques
-PRIMARY = '#FF2D95'      # rose vif
-SECONDARY = '#4B0082'    # indigo / violet foncé
-ACCENT = '#FFD166'       # doré chaud pour accent
-BG_MAIN = '#150018'      # fond principal très sombre (pas de blanc)
-CARD_BG = '#2A002A'      # fond des cartes/axes
-TEXT_COLOR = '#F8EFFE'   # texte clair
+# --- THEME & COULEURS (dominantes : jaune et marron) ---
+# Deux couleurs dominantes : jaune chaud et marron profond
+# Une couleur d'accent pour dégradés et éléments secondaires
+PRIMARY = '#FFD700'      # or 'gold' / jaune vif
+SECONDARY = '#8B4513'    # saddle brown / marron profond
+ACCENT = '#F4A460'       # sandy brown / accent chaud
+BG_MAIN = '#2B1B0E'      # fond principal marron très sombre
+CARD_BG = '#4B3528'      # fond des cartes/axes (marron moyen)
+TEXT_COLOR = '#FFF7D6'   # texte crème clair pour contraste
 
-# Palette par espèce (assigne une couleur claire et reconnaissable à chaque espèce)
+# Palette par espèce (assigne des nuances jaunes/marrons)
 SPECIES_PALETTE = {
     'Iris-setosa': PRIMARY,
-    'Iris-versicolor': SECONDARY,
-    'Iris-virginica': ACCENT,
+    'Iris-versicolor': ACCENT,
+    'Iris-virginica': SECONDARY,
 }
 
 
@@ -159,7 +157,7 @@ plt.rcParams.update({
     'xtick.color': TEXT_COLOR,
     'ytick.color': TEXT_COLOR,
     'text.color': TEXT_COLOR,
-    'grid.color': '#3a003a',
+    'grid.color': '#5a3a20',
     'legend.facecolor': CARD_BG,
     'legend.edgecolor': TEXT_COLOR,
 })
@@ -265,7 +263,7 @@ elif nav == 'Visualisations':
         fig, ax = plt.subplots()
         # Palette spécifique pour le scatter (couleurs vives par espèce)
         scatter_palette = {k: SPECIES_PALETTE.get(k, PRIMARY) for k in filtered_df['Species'].unique()}
-        sns.scatterplot(data=filtered_df, x=x_axis, y=y_axis, hue='Species', palette=scatter_palette, s=80, edgecolor='k', linewidth=0.6, ax=ax)
+        sns.scatterplot(data=filtered_df, x=x_axis, y=y_axis, hue='Species', palette=scatter_palette, s=80, edgecolor=TEXT_COLOR, linewidth=0.6, ax=ax)
         ax.set_title(f"{x_axis} vs {y_axis}", color=TEXT_COLOR)
         st.pyplot(fig)
 
@@ -298,7 +296,7 @@ elif nav == 'Visualisations':
         else:
             # Palette plus soft pour le pairplot mais qui reste dans le thème
             pair_palette = {k: SPECIES_PALETTE.get(k, PRIMARY) for k in filtered_df['Species'].unique()}
-            pairgrid = sns.pairplot(filtered_df[cols + ['Species']], hue='Species', corner=True, palette=pair_palette, plot_kws={'edgecolor': 'k', 's': 40})
+            pairgrid = sns.pairplot(filtered_df[cols + ['Species']], hue='Species', corner=True, palette=pair_palette, plot_kws={'edgecolor': TEXT_COLOR, 's': 40})
             pairgrid.fig.patch.set_facecolor(BG_MAIN)
             st.pyplot(pairgrid.fig)
 
@@ -392,7 +390,7 @@ elif nav == 'Prédiction':
                     # choisir les bonnes coordonnées selon l'axe
                     xval = s_len if st.session_state['scatter_x'] == 'SepalLength' else s_wid if st.session_state['scatter_x'] == 'SepalWidth' else p_len if st.session_state['scatter_x'] == 'PetalLength' else p_wid
                     yval = s_len if st.session_state['scatter_y'] == 'SepalLength' else s_wid if st.session_state['scatter_y'] == 'SepalWidth' else p_len if st.session_state['scatter_y'] == 'PetalLength' else p_wid
-                    ax_pred.scatter(xval, yval, color='black', s=100, marker='X')
+                    ax_pred.scatter(xval, yval, color=ACCENT, s=100, marker='X')
                     ax_pred.set_title('Point prédit (marqué en X noir)')
                     st.pyplot(fig_pred)
                 except Exception:
