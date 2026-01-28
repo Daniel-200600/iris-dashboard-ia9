@@ -27,8 +27,8 @@ Cette application permet d'analyser les caractéristiques des fleurs d'Iris.
 PRIMARY = '#FFFF00'      # jaune pur très vif
 SECONDARY = '#2B1208'    # marron très profond (proche du noir)
 ACCENT = '#FF6A00'       # orange saturé pour accents et marqueurs
-BG_MAIN = '#080402'      # fond quasi-noir, très chaud
-CARD_BG = '#1a120b'      # cartes légèrement plus claires que le fond
+BG_MAIN = '#000000'      # fond noir pur
+CARD_BG = '#0b0b0b'      # cartes légèrement plus claires que le fond (gris très foncé)
 TEXT_COLOR = '#FFFFFF'   # texte blanc pur pour maximum de contraste
 
 # Palette par espèce (assigne des nuances jaunes/marrons)
@@ -58,25 +58,25 @@ except FileNotFoundError:
 st.markdown(
     f"""
     <style>
-    /* Page background */
-    [data-testid="stAppViewContainer"] > .main {{
-        background: {BG_MAIN};
-        color: {TEXT_COLOR};
+    /* Force a pure black background across common Streamlit containers */
+    html, body, [data-testid="stAppViewContainer"], .stApp, .block-container, .main {{
+        background-color: {BG_MAIN} !important;
+        color: {TEXT_COLOR} !important;
     }}
 
     /* Main content cards / sections */
-    .css-1d391kg, .css-1v3fvcr, .css-10trblm {{
+    .css-1d391kg, .css-1v3fvcr, .css-10trblm, .stCard {{
         background-color: {CARD_BG} !important;
         color: {TEXT_COLOR} !important;
     }}
 
-    /* Sidebar */
+    /* Sidebar styling */
     [data-testid="stSidebar"] > div:first-child {{
-        background-color: {CARD_BG};
-        color: {TEXT_COLOR};
+        background-color: {CARD_BG} !important;
+        color: {TEXT_COLOR} !important;
     }}
     [data-testid="stSidebar"] .stText, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div{{
-        color: {TEXT_COLOR};
+        color: {TEXT_COLOR} !important;
     }}
 
     /* Buttons */
@@ -87,23 +87,28 @@ st.markdown(
     }}
 
     /* Tables and dataframes */
-    .stDataFrame div {{
+    .stDataFrame div, .css-1ex1afd, .css-1v0mbdj {{
         background-color: {CARD_BG} !important;
         color: {TEXT_COLOR} !important;
     }}
 
-    /* Headings */
-    .streamlit-expanderHeader {{
+    /* Headings / expanders */
+    .streamlit-expanderHeader, .css-10trblm h1, .css-10trblm h2 {{
         color: {TEXT_COLOR} !important;
     }}
 
-    /* Remove white backgrounds in some widgets */
-    .stSelectbox > div, .stTextInput > div {{
+    /* Inputs & widgets fallback */
+    .stSelectbox > div, .stTextInput > div, .stNumberInput > div, .stSlider > div {{
         background-color: transparent !important;
         color: {TEXT_COLOR} !important;
     }}
 
-    /* Fallback for other streamlit components */
+    /* Make SVGs and canvases match the dark background */
+    svg, canvas {{
+        background-color: transparent !important;
+    }}
+
+    /* Generic fallback to ensure readable text */
     * {{
         color: {TEXT_COLOR} !important;
     }}
