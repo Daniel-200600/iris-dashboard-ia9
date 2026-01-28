@@ -4,6 +4,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+# sklearn pour le modèle de prédiction
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
 # --- CONFIGURATION DE LA PAGE ---
 st.set_page_config(page_title="Iris Data Explorer", layout="centered")
 
@@ -128,3 +135,126 @@ elif plot_choice == 'Pairplot':
         # pairplot retourne un PairGrid ; afficher sa figure
         pairgrid = sns.pairplot(filtered_df[cols + ['Species']], hue='Species', corner=True)
         st.pyplot(pairgrid.fig)
+
+
+# --- PARTIE 4 : MODELE DE PREDICTION ---
+st.header("4. Prédiction")
+
+# Choix du modèle
+model_choice = st.selectbox("Choisis un modèle", ['RandomForest', 'LogisticRegression'])
+
+# Hyperparamètres simples
+rf_estimators = None
+if model_choice == 'RandomForest':
+    rf_estimators = st.slider("Nombre d'arbres (n_estimators)", min_value=10, max_value=300, value=100, step=10)
+
+
+@st.cache_resource
+def train_model(df, model_name='RandomForest', n_estimators=100, random_state=42):
+    X = df[axis_options].values
+    y = df['Species'].values
+    le = LabelEncoder()
+    y_enc = le.fit_transform(y)
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y_enc, test_size=0.2, random_state=random_state, stratify=y_enc
+    )
+
+    if model_name == 'RandomForest':
+        model = RandomForestClassifier(n_estimators=n_estimators, random_state=random_state)
+    else:
+        model = LogisticRegression(max_iter=500, random_state=random_state)
+
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+
+    acc = accuracy_score(y_test, y_pred)
+    report = classification_report(y_test, y_pred, target_names=le.classes_, zero_division=0)
+    cm = confusion_matrix(y_test, y_pred)
+
+    return {
+        'model': model,
+        'le': le,
+        'scaler': scaler,
+        'acc': acc,
+        'report': report,
+        'cm': cm,
+        'X_test': X_test,
+        'y_test': y_test,
+        'y_pred': y_pred,
+    }
+
+
+# Entraînement (est appelé automatiquement et mis en cache)
+with st.spinner('Entraînement du modèle...'):
+    trained = train_model(df, model_name=model_choice, n_estimators=rf_estimators or 100)
+
+st.subheader("Performance du modèle")
+st.write(f"Accuracy (test) : {trained['acc']:.3f}")
+st.text("Rapport de classification :")
+st.text(trained['report'])
+
+fig_cm, ax_cm = plt.subplots()
+sns.heatmap(trained['cm'], annot=True, fmt='d', cmap='Blues', ax=ax_cm,
+            xticklabels=trained['le'].classes_, yticklabels=trained['le'].classes_)
+ax_cm.set_xlabel('Prédit')
+ax_cm.set_ylabel('Vrai')
+ax_cm.set_title('Matrice de confusion')
+st.pyplot(fig_cm)
+
+
+# Interface de prédiction utilisateur
+st.subheader("Prédire l'espèce d'une fleur")
+st.write("Renseigne les caractéristiques ci-dessous puis clique sur 'Prédire' pour obtenir l'espèce estimée.")
+
+# Définir les bornes des sliders à partir du jeu de données
+input_sep_len_min, input_sep_len_max = float(df['SepalLength'].min()), float(df['SepalLength'].max())
+input_sep_wid_min, input_sep_wid_max = float(df['SepalWidth'].min()), float(df['SepalWidth'].max())
+input_pet_len_min, input_pet_len_max = float(df['PetalLength'].min()), float(df['PetalLength'].max())
+input_pet_wid_min, input_pet_wid_max = float(df['PetalWidth'].min()), float(df['PetalWidth'].max())
+
+col_a, col_b, col_c, col_d = st.columns(4)
+with col_a:
+    s_len = st.slider('SepalLength', min_value=input_sep_len_min, max_value=input_sep_len_max, value=float(df['SepalLength'].median()), step=0.1)
+with col_b:
+    s_wid = st.slider('SepalWidth', min_value=input_sep_wid_min, max_value=input_sep_wid_max, value=float(df['SepalWidth'].median()), step=0.1)
+with col_c:
+    p_len = st.slider('PetalLength', min_value=input_pet_len_min, max_value=input_pet_len_max, value=float(df['PetalLength'].median()), step=0.1)
+with col_d:
+    p_wid = st.slider('PetalWidth', min_value=input_pet_wid_min, max_value=input_pet_wid_max, value=float(df['PetalWidth'].median()), step=0.1)
+
+if st.button('Prédire'):
+    model = trained['model']
+    le = trained['le']
+    scaler = trained['scaler']
+
+    X_new = [[s_len, s_wid, p_len, p_wid]]
+    X_new_scaled = scaler.transform(X_new)
+
+    y_new_pred_idx = model.predict(X_new_scaled)
+    y_new_pred = le.inverse_transform(y_new_pred_idx)[0]
+
+    st.success(f"Espèce prédite : {y_new_pred}")
+
+    # Probabilités si disponibles
+    if hasattr(model, 'predict_proba'):
+        probs = model.predict_proba(X_new_scaled)[0]
+        prob_series = pd.Series(probs, index=le.classes_).sort_values(ascending=False)
+        st.write("Probabilités :")
+        st.table(prob_series)
+
+    # Afficher le point prédit sur un scatter si l'utilisateur sélectionne 2 axes
+    if 'scatter_x' in st.session_state and 'scatter_y' in st.session_state:
+        try:
+            fig_pred, ax_pred = plt.subplots()
+            sns.scatterplot(data=filtered_df, x=st.session_state['scatter_x'], y=st.session_state['scatter_y'], hue='Species', ax=ax_pred)
+            ax_pred.scatter(s_len, p_len if st.session_state['scatter_y'] == 'PetalLength' else s_wid,
+                            color='black', s=100, marker='X')
+            ax_pred.set_title('Point prédit (marqué en X noir)')
+            st.pyplot(fig_pred)
+        except Exception:
+            # Ne pas planter l'app si le tracé échoue
+            pass
