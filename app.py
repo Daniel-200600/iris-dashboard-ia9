@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.colors import LinearSegmentedColormap
 
 # sklearn pour le modèle de prédiction
 from sklearn.model_selection import train_test_split
@@ -20,6 +21,26 @@ Cette application permet d'analyser les caractéristiques des fleurs d'Iris.
 **Auteur : Daniel**
 """)
 
+# --- THEME & COULEURS (choix demandé : couleurs vives, pas de fond blanc) ---
+# Deux couleurs dominantes choisies pour l'application :
+# - PRIMARY (rose vif)
+# - SECONDARY (indigo profond)
+# Une couleur d'accent pour équilibrer les graphiques
+PRIMARY = '#FF2D95'      # rose vif
+SECONDARY = '#4B0082'    # indigo / violet foncé
+ACCENT = '#FFD166'       # doré chaud pour accent
+BG_MAIN = '#150018'      # fond principal très sombre (pas de blanc)
+CARD_BG = '#2A002A'      # fond des cartes/axes
+TEXT_COLOR = '#F8EFFE'   # texte clair
+
+# Palette par espèce (assigne une couleur claire et reconnaissable à chaque espèce)
+SPECIES_PALETTE = {
+    'Iris-setosa': PRIMARY,
+    'Iris-versicolor': SECONDARY,
+    'Iris-virginica': ACCENT,
+}
+
+
 # --- CHARGEMENT DES DONNÉES ---
 @st.cache_data
 def load_data():
@@ -35,23 +56,59 @@ except FileNotFoundError:
     st.stop()
 
 # ------------------ SIDEBAR (Navigation & Options) ------------------
-# CSS pour une barre latérale sombre
+# CSS global pour enlever les fonds blancs et appliquer les couleurs vives
 st.markdown(
-    """
+    f"""
     <style>
-    /* Sidebar background */
-    [data-testid="stSidebar"] > div:first-child {
-        background-color: #0b1220;
-        color: #e6eef8;
-    }
-    /* Sidebar text and widgets */
-    [data-testid="stSidebar"] .stText, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div{
-        color: #e6eef8;
-    }
-    /* Make radio buttons look nicer */
-    [data-testid="stSidebar"] .stRadio > div {
-        color: #e6eef8;
-    }
+    /* Page background */
+    [data-testid="stAppViewContainer"] > .main {{
+        background: {BG_MAIN};
+        color: {TEXT_COLOR};
+    }}
+
+    /* Main content cards / sections */
+    .css-1d391kg, .css-1v3fvcr, .css-10trblm {{
+        background-color: {CARD_BG} !important;
+        color: {TEXT_COLOR} !important;
+    }}
+
+    /* Sidebar */
+    [data-testid="stSidebar"] > div:first-child {{
+        background-color: {CARD_BG};
+        color: {TEXT_COLOR};
+    }}
+    [data-testid="stSidebar"] .stText, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div{{
+        color: {TEXT_COLOR};
+    }}
+
+    /* Buttons */
+    div.stButton > button {{
+        background-color: {PRIMARY} !important;
+        color: {TEXT_COLOR} !important;
+        border: 1px solid {SECONDARY} !important;
+    }}
+
+    /* Tables and dataframes */
+    .stDataFrame div {{
+        background-color: {CARD_BG} !important;
+        color: {TEXT_COLOR} !important;
+    }}
+
+    /* Headings */
+    .streamlit-expanderHeader {{
+        color: {TEXT_COLOR} !important;
+    }}
+
+    /* Remove white backgrounds in some widgets */
+    .stSelectbox > div, .stTextInput > div {{
+        background-color: transparent !important;
+        color: {TEXT_COLOR} !important;
+    }}
+
+    /* Fallback for other streamlit components */
+    * {{
+        color: {TEXT_COLOR} !important;
+    }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -83,13 +140,32 @@ rf_estimators = None
 if model_choice == 'RandomForest':
     rf_estimators = st.sidebar.slider("n_estimators", min_value=10, max_value=300, value=100, step=10)
 
-# Appliquer le thème choisi
+# Appliquer le thème choisi (mais forcer les couleurs vives et fonds sombre)
 if design.startswith('Seaborn'):
     _, sns_style = design.split(' ', 1)
-    sns.set_theme(style=sns_style)
+    # On applique le style Seaborn choisi puis on force la palette
+    sns.set_theme(style=sns_style, palette=list(SPECIES_PALETTE.values()))
 else:
     mpl_style = 'ggplot' if 'ggplot' in design else 'classic'
     plt.style.use(mpl_style)
+
+# Forcer des rcParams pour éviter les fonds blancs et appliquer nos couleurs
+plt.rcParams.update({
+    'figure.facecolor': BG_MAIN,
+    'axes.facecolor': CARD_BG,
+    'savefig.facecolor': BG_MAIN,
+    'axes.edgecolor': TEXT_COLOR,
+    'axes.labelcolor': TEXT_COLOR,
+    'xtick.color': TEXT_COLOR,
+    'ytick.color': TEXT_COLOR,
+    'text.color': TEXT_COLOR,
+    'grid.color': '#3a003a',
+    'legend.facecolor': CARD_BG,
+    'legend.edgecolor': TEXT_COLOR,
+})
+
+# Préparer un cmap personnalisé pour la heatmap
+HEATMAP_CMAP = LinearSegmentedColormap.from_list('iris_cmap', [SECONDARY, PRIMARY])
 
 # Filtrer les données globalement
 if len(selected_species) == 0:
@@ -187,25 +263,31 @@ elif nav == 'Visualisations':
         y_axis = st.selectbox("Choisis l'axe Y", axis_options, index=2, key='scatter_y')
 
         fig, ax = plt.subplots()
-        sns.scatterplot(data=filtered_df, x=x_axis, y=y_axis, hue='Species', ax=ax)
-        ax.set_title(f"{x_axis} vs {y_axis}")
+        # Palette spécifique pour le scatter (couleurs vives par espèce)
+        scatter_palette = {k: SPECIES_PALETTE.get(k, PRIMARY) for k in filtered_df['Species'].unique()}
+        sns.scatterplot(data=filtered_df, x=x_axis, y=y_axis, hue='Species', palette=scatter_palette, s=80, edgecolor='k', linewidth=0.6, ax=ax)
+        ax.set_title(f"{x_axis} vs {y_axis}", color=TEXT_COLOR)
         st.pyplot(fig)
 
     elif plot_choice == 'Boxplot':
         st.subheader("Boxplot par espèce")
         box_col = st.selectbox("Choisis une colonne numérique pour le boxplot", axis_options, key='box_col')
         fig, ax = plt.subplots()
-        sns.boxplot(data=filtered_df, x='Species', y=box_col, ax=ax)
-        sns.stripplot(data=filtered_df, x='Species', y=box_col, color='0.3', size=4, jitter=True, ax=ax)
-        ax.set_title(f"Boxplot de {box_col} par espèce")
+        # Utiliser une palette dégradée pour les boxplots
+        box_palette = [SPECIES_PALETTE.get(s, PRIMARY) for s in filtered_df['Species'].unique()]
+        sns.boxplot(data=filtered_df, x='Species', y=box_col, palette=box_palette, ax=ax, fliersize=3)
+        sns.stripplot(data=filtered_df, x='Species', y=box_col, color=TEXT_COLOR, size=4, jitter=True, ax=ax, edgecolor='none')
+        ax.set_title(f"Boxplot de {box_col} par espèce", color=TEXT_COLOR)
         st.pyplot(fig)
 
     elif plot_choice == 'Histogram':
         st.subheader("Distribution des variables")
         hist_col = st.selectbox("Choisis une colonne pour l'histogramme", axis_options, key='hist_col')
         fig2, ax2 = plt.subplots()
-        sns.histplot(data=filtered_df, x=hist_col, kde=True, hue='Species', element='step', ax=ax2)
-        ax2.set_title(f"Histogramme de {hist_col}")
+        # Histogramme avec transparence et palette par espèce
+        hist_palette = [SPECIES_PALETTE.get(s, PRIMARY) for s in filtered_df['Species'].unique()]
+        sns.histplot(data=filtered_df, x=hist_col, kde=True, hue='Species', element='step', palette=hist_palette, alpha=0.6, ax=ax2)
+        ax2.set_title(f"Histogramme de {hist_col}", color=TEXT_COLOR)
         st.pyplot(fig2)
 
     elif plot_choice == 'Pairplot':
@@ -214,7 +296,10 @@ elif nav == 'Visualisations':
         if len(cols) < 2:
             st.warning("Choisir au moins 2 colonnes pour le pairplot.")
         else:
-            pairgrid = sns.pairplot(filtered_df[cols + ['Species']], hue='Species', corner=True)
+            # Palette plus soft pour le pairplot mais qui reste dans le thème
+            pair_palette = {k: SPECIES_PALETTE.get(k, PRIMARY) for k in filtered_df['Species'].unique()}
+            pairgrid = sns.pairplot(filtered_df[cols + ['Species']], hue='Species', corner=True, palette=pair_palette, plot_kws={'edgecolor': 'k', 's': 40})
+            pairgrid.fig.patch.set_facecolor(BG_MAIN)
             st.pyplot(pairgrid.fig)
 
 elif nav == 'Modèle':
@@ -236,8 +321,9 @@ elif nav == 'Modèle':
         st.text(trained['report'])
 
         fig_cm, ax_cm = plt.subplots()
-        sns.heatmap(trained['cm'], annot=True, fmt='d', cmap='Blues', ax=ax_cm,
-                    xticklabels=trained['le'].classes_, yticklabels=trained['le'].classes_)
+        # Heatmap avec cmap personnalisé (indigo -> rose)
+        sns.heatmap(trained['cm'], annot=True, fmt='d', cmap=HEATMAP_CMAP, ax=ax_cm,
+                    xticklabels=trained['le'].classes_, yticklabels=trained['le'].classes_, cbar_kws={'label': 'count'})
         ax_cm.set_xlabel('Prédit')
         ax_cm.set_ylabel('Vrai')
         ax_cm.set_title('Matrice de confusion')
