@@ -22,14 +22,14 @@ Cette application permet d'analyser les caractéristiques des fleurs d'Iris.
 """)
 
 # --- THEME & COULEURS (dominantes : jaune et marron) ---
-# Deux couleurs dominantes : jaune chaud et marron profond
-# Une couleur d'accent pour dégradés et éléments secondaires
-PRIMARY = '#FFD700'      # or 'gold' / jaune vif
-SECONDARY = '#8B4513'    # saddle brown / marron profond
-ACCENT = '#F4A460'       # sandy brown / accent chaud
-BG_MAIN = '#2B1B0E'      # fond principal marron très sombre
-CARD_BG = '#4B3528'      # fond des cartes/axes (marron moyen)
-TEXT_COLOR = '#FFF7D6'   # texte crème clair pour contraste
+# Deux couleurs dominantes : jaune très vif et marron presque noir
+# Accent orangé saturé pour les éléments saillants
+PRIMARY = '#FFFF00'      # jaune pur très vif
+SECONDARY = '#2B1208'    # marron très profond (proche du noir)
+ACCENT = '#FF6A00'       # orange saturé pour accents et marqueurs
+BG_MAIN = '#080402'      # fond quasi-noir, très chaud
+CARD_BG = '#1a120b'      # cartes légèrement plus claires que le fond
+TEXT_COLOR = '#FFFFFF'   # texte blanc pur pour maximum de contraste
 
 # Palette par espèce (assigne des nuances jaunes/marrons)
 SPECIES_PALETTE = {
@@ -127,7 +127,7 @@ st.sidebar.markdown("---")
 st.sidebar.subheader("Apparence")
 design = st.sidebar.selectbox(
     "Choisis un design (thème)",
-    ['Seaborn darkgrid', 'Seaborn whitegrid', 'Seaborn ticks', 'Matplotlib ggplot', 'Matplotlib classic'],
+    ['Seaborn darkgrid', 'Seaborn ticks', 'Matplotlib ggplot', 'Matplotlib classic'],
     index=0,
 )
 
@@ -154,16 +154,20 @@ plt.rcParams.update({
     'savefig.facecolor': BG_MAIN,
     'axes.edgecolor': TEXT_COLOR,
     'axes.labelcolor': TEXT_COLOR,
+    'axes.titlecolor': TEXT_COLOR,
     'xtick.color': TEXT_COLOR,
     'ytick.color': TEXT_COLOR,
     'text.color': TEXT_COLOR,
-    'grid.color': '#5a3a20',
+    'grid.color': '#3b1f12',
     'legend.facecolor': CARD_BG,
     'legend.edgecolor': TEXT_COLOR,
+    'axes.titleweight': 'bold',
+    'axes.titlesize': 12,
+    'axes.labelsize': 11,
 })
 
 # Préparer un cmap personnalisé pour la heatmap
-HEATMAP_CMAP = LinearSegmentedColormap.from_list('iris_cmap', [SECONDARY, PRIMARY])
+HEATMAP_CMAP = LinearSegmentedColormap.from_list('iris_cmap', [SECONDARY, ACCENT, PRIMARY])
 
 # Filtrer les données globalement
 if len(selected_species) == 0:
@@ -319,7 +323,7 @@ elif nav == 'Modèle':
         st.text(trained['report'])
 
         fig_cm, ax_cm = plt.subplots()
-        # Heatmap avec cmap personnalisé (indigo -> rose)
+    # Heatmap avec cmap personnalisé (marron -> jaune)
         sns.heatmap(trained['cm'], annot=True, fmt='d', cmap=HEATMAP_CMAP, ax=ax_cm,
                     xticklabels=trained['le'].classes_, yticklabels=trained['le'].classes_, cbar_kws={'label': 'count'})
         ax_cm.set_xlabel('Prédit')
@@ -391,7 +395,7 @@ elif nav == 'Prédiction':
                     xval = s_len if st.session_state['scatter_x'] == 'SepalLength' else s_wid if st.session_state['scatter_x'] == 'SepalWidth' else p_len if st.session_state['scatter_x'] == 'PetalLength' else p_wid
                     yval = s_len if st.session_state['scatter_y'] == 'SepalLength' else s_wid if st.session_state['scatter_y'] == 'SepalWidth' else p_len if st.session_state['scatter_y'] == 'PetalLength' else p_wid
                     ax_pred.scatter(xval, yval, color=ACCENT, s=100, marker='X')
-                    ax_pred.set_title('Point prédit (marqué en X noir)')
+                    ax_pred.set_title('Point prédit (marqué en X)')
                     st.pyplot(fig_pred)
                 except Exception:
                     pass
