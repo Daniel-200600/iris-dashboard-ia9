@@ -58,23 +58,73 @@ st.write(df.describe())
 
 # --- PARTIE 3 : VISUALISATION ---
 st.header("3. Visualisation Interactive")
-
-# Selectbox pour choisir les axes
-st.subheader("Graphique de dispersion (Scatter Plot)")
+# Options communes
 axis_options = ['SepalLength', 'SepalWidth', 'PetalLength', 'PetalWidth']
 
-x_axis = st.selectbox("Choisis l'axe X", axis_options, index=0)
-y_axis = st.selectbox("Choisis l'axe Y", axis_options, index=2)
+# --- Menu déroulant pour le design / thème ---
+st.subheader("Apparence")
+design = st.selectbox(
+    "Choisis un design (thème)",
+    ['Seaborn darkgrid', 'Seaborn whitegrid', 'Seaborn ticks', 'Matplotlib ggplot', 'Matplotlib classic'],
+    index=0,
+)
 
-# Création du graphique
-fig, ax = plt.subplots()
-sns.scatterplot(data=df, x=x_axis, y=y_axis, hue='Species', ax=ax)
-plt.title(f"{x_axis} vs {y_axis}")
-st.pyplot(fig)
+if design.startswith('Seaborn'):
+    # applique le style seaborn
+    _, sns_style = design.split(' ', 1)
+    sns.set_theme(style=sns_style)
+else:
+    mpl_style = 'ggplot' if 'ggplot' in design else 'classic'
+    plt.style.use(mpl_style)
 
-# Histogramme
-st.subheader("Distribution des variables")
-hist_col = st.selectbox("Choisis une colonne pour l'histogramme", axis_options)
-fig2, ax2 = plt.subplots()
-sns.histplot(data=df, x=hist_col, kde=True, hue="Species", element="step", ax=ax2)
-st.pyplot(fig2)
+# --- Filtre des espèces (menu déroulant multi-sélection) ---
+st.subheader("Filtrer les données")
+species_options = df['Species'].unique().tolist()
+selected_species = st.multiselect("Sélectionner les espèces (laisser vide = toutes)", options=species_options, default=species_options)
+
+if len(selected_species) == 0:
+    filtered_df = df.copy()
+else:
+    filtered_df = df[df['Species'].isin(selected_species)]
+
+# --- Choix du type de graphique ---
+st.header("Visualisations")
+plot_choice = st.selectbox("Type de graphique", ['Scatter', 'Boxplot', 'Histogram', 'Pairplot'])
+
+if plot_choice == 'Scatter':
+    st.subheader("Graphique de dispersion (Scatter Plot)")
+    x_axis = st.selectbox("Choisis l'axe X", axis_options, index=0, key='scatter_x')
+    y_axis = st.selectbox("Choisis l'axe Y", axis_options, index=2, key='scatter_y')
+
+    fig, ax = plt.subplots()
+    sns.scatterplot(data=filtered_df, x=x_axis, y=y_axis, hue='Species', ax=ax)
+    ax.set_title(f"{x_axis} vs {y_axis}")
+    st.pyplot(fig)
+
+elif plot_choice == 'Boxplot':
+    st.subheader("Boxplot par espèce")
+    box_col = st.selectbox("Choisis une colonne numérique pour le boxplot", axis_options, key='box_col')
+    fig, ax = plt.subplots()
+    sns.boxplot(data=filtered_df, x='Species', y=box_col, ax=ax)
+    # ajoute les points individuels pour plus de lisibilité
+    sns.stripplot(data=filtered_df, x='Species', y=box_col, color='0.3', size=4, jitter=True, ax=ax)
+    ax.set_title(f"Boxplot de {box_col} par espèce")
+    st.pyplot(fig)
+
+elif plot_choice == 'Histogram':
+    st.subheader("Distribution des variables")
+    hist_col = st.selectbox("Choisis une colonne pour l'histogramme", axis_options, key='hist_col')
+    fig2, ax2 = plt.subplots()
+    sns.histplot(data=filtered_df, x=hist_col, kde=True, hue='Species', element='step', ax=ax2)
+    ax2.set_title(f"Histogramme de {hist_col}")
+    st.pyplot(fig2)
+
+elif plot_choice == 'Pairplot':
+    st.subheader("Pairplot (nuages de points matriciels)")
+    cols = st.multiselect("Choisis les colonnes à inclure", axis_options, default=axis_options)
+    if len(cols) < 2:
+        st.warning("Choisir au moins 2 colonnes pour le pairplot.")
+    else:
+        # pairplot retourne un PairGrid ; afficher sa figure
+        pairgrid = sns.pairplot(filtered_df[cols + ['Species']], hue='Species', corner=True)
+        st.pyplot(pairgrid.fig)
