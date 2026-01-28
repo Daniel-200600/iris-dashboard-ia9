@@ -29,7 +29,9 @@ SECONDARY = '#2B1208'    # marron très profond (proche du noir)
 ACCENT = '#FF6A00'       # orange saturé pour accents et marqueurs
 BG_MAIN = '#000000'      # fond noir pur
 CARD_BG = '#0b0b0b'      # cartes légèrement plus claires que le fond (gris très foncé)
-TEXT_COLOR = '#FFFFFF'   # texte blanc pur pour maximum de contraste
+# Couleurs de texte
+TEXT_COLOR = '#8A2BE2'   # violet (couleur principale du texte dans la zone de contenu)
+SIDEBAR_TEXT = '#FFFFFF' # texte de la sidebar (laisser en blanc pour la lisibilité)
 
 # Palette par espèce (assigne des nuances jaunes/marrons)
 SPECIES_PALETTE = {
@@ -59,8 +61,11 @@ st.markdown(
     f"""
     <style>
     /* Force a pure black background across common Streamlit containers */
-    html, body, [data-testid="stAppViewContainer"], .stApp, .block-container, .main {{
+    html, body, [data-testid="stAppViewContainer"], .stApp, .block-container {{
         background-color: {BG_MAIN} !important;
+    }}
+    /* Texte principal (zone de contenu) */
+    .main, .main * {{
         color: {TEXT_COLOR} !important;
     }}
 
@@ -70,13 +75,13 @@ st.markdown(
         color: {TEXT_COLOR} !important;
     }}
 
-    /* Sidebar styling */
+    /* Sidebar styling (texte laissé en blanc pour lisibilité) */
     [data-testid="stSidebar"] > div:first-child {{
         background-color: {CARD_BG} !important;
-        color: {TEXT_COLOR} !important;
+        color: {SIDEBAR_TEXT} !important;
     }}
     [data-testid="stSidebar"] .stText, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div{{
-        color: {TEXT_COLOR} !important;
+        color: {SIDEBAR_TEXT} !important;
     }}
 
     /* Buttons */
@@ -108,8 +113,8 @@ st.markdown(
         background-color: transparent !important;
     }}
 
-    /* Generic fallback to ensure readable text */
-    * {{
+    /* Generic fallback only for main content (avoid overriding sidebar) */
+    .main, .main * {{
         color: {TEXT_COLOR} !important;
     }}
     </style>
