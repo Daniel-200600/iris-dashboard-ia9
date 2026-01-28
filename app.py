@@ -122,10 +122,17 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Navigation principale
-nav = st.sidebar.radio("Navigation", [
-    'Accueil', 'Exploration', 'Visualisations', 'Modèle', 'Prédiction', 'Données', 'Paramètres', 'À propos'
-])
+# Navigation principale (barre en haut)
+nav_options = ['Accueil', 'Exploration', 'Visualisations', 'Modèle', 'Prédiction', 'Données', 'Paramètres', 'À propos']
+
+# Render a simple horizontal navigation bar using buttons. Clicking a button stores the
+# selected page in session_state['nav']. The sidebar remains available for filters/options.
+cols_nav = st.columns(len(nav_options))
+for i, opt in enumerate(nav_options):
+    if cols_nav[i].button(opt):
+        st.session_state['nav'] = opt
+
+nav = st.session_state.get('nav', nav_options[0])
 
 # Filtres et options globales dans la sidebar
 st.sidebar.markdown("---")
