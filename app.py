@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -21,23 +20,23 @@ Cette application permet d'analyser les caractéristiques des fleurs d'Iris.
 **Auteur : Daniel**
 """)
 
-# --- THEME & COULEURS (dominantes : jaune et marron) ---
-# Deux couleurs dominantes : jaune très vif et marron presque noir
-# Accent orangé saturé pour les éléments saillants
-PRIMARY = '#FFFF00'      # jaune pur très vif
-SECONDARY = '#2B1208'    # marron très profond (proche du noir)
-ACCENT = '#FF6A00'       # orange saturé pour accents et marqueurs
-BG_MAIN = '#000000'      # fond noir pur
-CARD_BG = '#0b0b0b'      # cartes légèrement plus claires que le fond (gris très foncé)
+# --- THEME & COULEURS (thème clair et agréable) ---
+# Couleurs douces et lumineuses pour une meilleure lisibilité
+PRIMARY = '#5DADE2'      # bleu ciel doux
+SECONDARY = '#48C9B0'    # turquoise décontractant
+ACCENT = '#F5B041'       # orange doux
+BG_MAIN = '#FAFAFA'      # fond blanc cassé
+CARD_BG = '#FFFFFF'      # cartes blanches
+SIDEBAR_BG = '#E8E8E8'   # fond de la sidebar (gris clair plus sombre)
 # Couleurs de texte
-TEXT_COLOR = '#8A2BE2'   # violet (couleur principale du texte dans la zone de contenu)
-SIDEBAR_TEXT = '#FFFFFF' # texte de la sidebar (laisser en blanc pour la lisibilité)
+TEXT_COLOR = '#2C3E50'   # gris foncé pour le texte principal
+SIDEBAR_TEXT = '#2C3E50' # texte de la sidebar
 
-# Palette par espèce (assigne des nuances jaunes/marrons)
+# Palette par espèce (couleurs agréables et distinctes)
 SPECIES_PALETTE = {
-    'Iris-setosa': PRIMARY,
-    'Iris-versicolor': ACCENT,
-    'Iris-virginica': SECONDARY,
+    'Iris-setosa': '#5DADE2',      # bleu ciel
+    'Iris-versicolor': '#48C9B0',  # turquoise
+    'Iris-virginica': '#F5B041',   # orange doux
 }
 
 
@@ -75,9 +74,9 @@ st.markdown(
         color: {TEXT_COLOR} !important;
     }}
 
-    /* Sidebar styling (texte laissé en blanc pour lisibilité) */
+/* Sidebar styling (texte laissé en blanc pour lisibilité) */
     [data-testid="stSidebar"] > div:first-child {{
-        background-color: {CARD_BG} !important;
+        background-color: {SIDEBAR_BG} !important;
         color: {SIDEBAR_TEXT} !important;
     }}
     [data-testid="stSidebar"] .stText, [data-testid="stSidebar"] label, [data-testid="stSidebar"] div{{
