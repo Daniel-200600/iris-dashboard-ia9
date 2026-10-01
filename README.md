@@ -1,58 +1,28 @@
-🌸 README — Modèle de Prédiction de Fleurs (Dataset Iris)
-Aperçu du projet
+# Iris Dashboard
 
-Ce projet s’inscrit dans le domaine de la data science et consiste à développer un modèle de prédiction permettant d’identifier l’espèce d’une fleur à partir de ses caractéristiques.
-En entrant des informations telles que la longueur, la couleur ou la longueur des pétales, le modèle détermine automatiquement la catégorie de fleur correspondante.
+An interactive Streamlit dashboard built on the classic **Iris** dataset (150 flowers,
+3 species): explore the data, visualise it and predict the species from measurements.
 
- Objectif
+## Features
 
-Créer un modèle supervisé capable de prédire l’espèce d’une fleur en utilisant les variables du célèbre dataset Iris.
-Ce projet met en œuvre des techniques standards de machine learning en Python (prétraitement, entraînement, évaluation).
+- **Filters** by species and a selectable page design.
+- **Visualisation**: scatter plot, boxplot, histogram and pairplot with chosen axes.
+- **Model**: Random Forest (adjustable `n_estimators`) or Logistic Regression,
+  trained on the fly with train/test split, accuracy, classification report and confusion matrix.
+- **Prediction**: sliders for sepal/petal length and width, initialised at the dataset medians.
 
- Dataset utilisé : Iris
+## Dataset
 
-Le dataset Iris est un jeu de données classique en machine learning.
-Il contient 150 observations et 4 caractéristiques permettant de classifier les fleurs en 3 espèces.
+`Iris.csv` (semicolon-separated): `SepalLength`, `SepalWidth`, `PetalLength`,
+`PetalWidth`, `Species`.
 
-Variables du dataset :
+## Run locally
 
-Sepal Length (longueur du sépale)
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
 
-Sepal Width (largeur du sépale)
+## Stack
 
-Petal Length (longueur du pétale)
-
-Petal Width (largeur du pétale)
-
-Target : espèce de la fleur
-
- Modèle de prédiction
-
-Le modèle a été développé en Python avec les bibliothèques standards de machine learning.
-
-Étapes du pipeline :
-
-Importation et analyse exploratoire du dataset
-
-Nettoyage et préparation des données
-
-Séparation du dataset en train/test
-
-Entraînement du modèle (ex. : Random Forest, Logistic Regression, KNN — à préciser si tu me dis lequel tu as utilisé)
-
-Évaluation du modèle
-
-Prédiction sur de nouvelles données
-
- Technologies & Librairies
-
-Ce projet a été réalisé en Python.
-Bibliothèques couramment utilisées :
-
-pandas
-
-numpy
-
-matplotlib / seaborn
-
-scikit-learn
+Python, Streamlit, pandas, matplotlib, seaborn, scikit-learn.
